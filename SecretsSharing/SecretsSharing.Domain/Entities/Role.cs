@@ -9,6 +9,6 @@ namespace SecretsSharing.Domain.Entities
 {   
     public class Role : IdentityRole<string>
     {
-        public virtual ICollection<UserRole> UserRoles { get; set; }
+        public ICollection<UserRole> UserRoles { get; set; }
     }
 }

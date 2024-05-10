@@ -1,4 +1,5 @@
 ﻿using SecretsSharing.Domain.Entities;
+using SecretsSharing.Dto.Auth;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,7 +10,7 @@ namespace SecretsSharing.Service.Services.Interfaces
 {
     public interface IUserService
     {
-        Task<string> Authenticate(string email, string password);
+        Task<AuthenticationToken> Authenticate(string email, string password);
         Task<User> Register(User user, string password);
     }
 }

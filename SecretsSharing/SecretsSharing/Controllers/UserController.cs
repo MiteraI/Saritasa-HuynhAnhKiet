@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using SecretsSharing.Domain.Constants;
 using SecretsSharing.Domain.Entities;
 using SecretsSharing.Dto.Auth;
 using SecretsSharing.Service.Services.Interfaces;
@@ -31,13 +33,20 @@ namespace SecretsSharing.Controllers
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginDto loginDto)
         {
-            var token = _userService.Authenticate(loginDto.Email, loginDto.Password);
+            var token = await _userService.Authenticate(loginDto.Email, loginDto.Password);
             if (token == null)
             {
                 return Unauthorized();
             }
 
             return Ok(token);
+        }
+
+        [HttpGet("jwt1")]
+        [Authorize(Roles = RolesConstants.ADMIN)]
+        public string GetJwt1()
+        {
+            return "jwt1";
         }
     }
 }

@@ -24,21 +24,31 @@ namespace SecretsSharing.Configuration
                 options.ClaimsIdentity.UserNameClaimType = ClaimTypes.NameIdentifier;
             })
                 .AddEntityFrameworkStores<ApplicationDatabaseContext>()
+                .AddUserStore<UserStore<User, Role, ApplicationDatabaseContext, string, IdentityUserClaim<string>,
+                UserRole, IdentityUserLogin<string>, IdentityUserToken<string>, IdentityRoleClaim<string>>>()
+                .AddRoleStore<RoleStore<Role, ApplicationDatabaseContext, string, UserRole, IdentityRoleClaim<string>>
+                >()
                 .AddDefaultTokenProviders();
 
-            services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+            services.AddAuthentication(options =>
+            {
+                options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+                options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
+            })
                 .AddJwtBearer(
                 options =>
                 {
+                    options.RequireHttpsMetadata = false;
+                    options.SaveToken = true;
                     options.TokenValidationParameters = new TokenValidationParameters
                     {
                         ValidateIssuer = true,
                         ValidateLifetime = true,
                         ValidateIssuerSigningKey = true,
+                        ValidateAudience = false,
                         ValidIssuer = configuration["Jwt:Issuer"],
-                        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["Jwt:Key"]!)),
-                        ClockSkew = TimeSpan.Zero,
-                        NameClaimType = ClaimTypes.NameIdentifier
+                        IssuerSigningKey = new SymmetricSecurityKey(Convert.FromBase64String(configuration["Jwt:Key"]!)),
                     };
                 }
                 );
@@ -56,6 +66,7 @@ namespace SecretsSharing.Configuration
 
             app.UseAuthentication();
             app.UseAuthorization();
+
             return app;
         }
     }

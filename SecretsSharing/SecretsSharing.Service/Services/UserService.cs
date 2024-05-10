@@ -4,6 +4,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using SecretsSharing.Domain.Constants;
 using SecretsSharing.Domain.Entities;
+using SecretsSharing.Dto.Auth;
 using SecretsSharing.Service.Services.Interfaces;
 using System;
 using System.Collections.Generic;
@@ -28,28 +29,38 @@ namespace SecretsSharing.Service.Services
             _configuration = configuration;
         }
 
-        public async Task<string> Authenticate(string email, string password)
+        public async Task<AuthenticationToken> Authenticate(string email, string password)
         {
-            var user = await GetUserWithUserRolesByEmail(email);
+            var user = await _userManager.FindByEmailAsync(email);
             if (user != null && await _userManager.CheckPasswordAsync(user, password))
             {
-                var claims = new[]
+                var userRoles = await _userManager.GetRolesAsync(user);
+                var authClaims = new List<Claim>
                 {
                     new Claim(JwtRegisteredClaimNames.Sub, user.Id),
-                    new Claim(JwtRegisteredClaimNames.Email, user.Email),
+                    new Claim(JwtRegisteredClaimNames.Email, user.Email)
                 };
 
-                var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]));
+                foreach (var userRole in userRoles)
+                {
+                    authClaims.Add(new Claim(ClaimTypes.Role, userRole));
+                }
+
+                var key = new SymmetricSecurityKey(Convert.FromBase64String(_configuration["Jwt:Key"]));
                 var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+
                 var token = new JwtSecurityToken(
                     issuer: _configuration["Jwt:Issuer"],
-                    audience: _configuration["Jwt:Audience"],
-                    claims: claims,
+                    claims: authClaims,
                     expires: DateTime.UtcNow.AddMinutes(30),
                     signingCredentials: creds
                 );
 
-                return new JwtSecurityTokenHandler().WriteToken(token);
+
+                return new AuthenticationToken
+                {
+                    Token = new JwtSecurityTokenHandler().WriteToken(token)
+                };
             }
 
             return null;
@@ -67,7 +78,7 @@ namespace SecretsSharing.Service.Services
         {
             return await _userManager.Users
                 .Include(it => it.UserRoles)
-                .ThenInclude(r => r.Role)
+                .ThenInclude(it => it.Role)
                 .SingleOrDefaultAsync(it => it.Email == email);
         }
     }
