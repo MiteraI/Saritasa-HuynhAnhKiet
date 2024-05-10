@@ -1,7 +1,11 @@
+using SecretsSharing.Configuration;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-
+builder.Services.AddDatabaseConfiguration(builder.Configuration);
+builder.Services.AddSecurityConfiguration(builder.Configuration);
+builder.Services.AddAutoMapper(typeof(Program));
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
@@ -16,7 +20,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.UseAuthorization();
+app.UseSecurityConfiguration();
 
 app.MapControllers();
 

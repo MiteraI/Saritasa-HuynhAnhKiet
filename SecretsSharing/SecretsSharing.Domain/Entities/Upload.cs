@@ -14,5 +14,7 @@ namespace SecretsSharing.Domain.Entities
         public string? FileUrl { get; set; }
         public string? MessageText { get; set; }
         public bool IsAutoDelete { get; set; } = false;
+        public string UserId { get; set; }
+        public virtual User User { get; set; }
     }
 }

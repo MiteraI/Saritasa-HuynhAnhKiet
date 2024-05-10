@@ -10,7 +10,14 @@ using System.Threading.Tasks;
 
 namespace SecretsSharing.Domain.Entities
 {
-    public class ApplicationDatabaseContext : IdentityDbContext<User, Role, string>
+    public class ApplicationDatabaseContext : IdentityDbContext<
+        User, Role, string,
+        IdentityUserClaim<string>,
+        UserRole,
+        IdentityUserLogin<string>,
+        IdentityRoleClaim<string>,
+        IdentityUserToken<string>
+        >
     {
         public ApplicationDatabaseContext(DbContextOptions<ApplicationDatabaseContext> options) : base(options)
         {
@@ -22,13 +29,23 @@ namespace SecretsSharing.Domain.Entities
         {
             base.OnModelCreating(builder);
 
-            builder.Entity<User>(entity =>
+            builder.Entity<UserRole>(userRole =>
             {
-                entity.HasOne(d => d.Role)
-                    .WithMany(p => p.Users)
-                    .HasForeignKey(d => d.RoleId)
+                userRole.HasKey(ur => new { ur.UserId, ur.RoleId });
+
+                userRole.HasOne(ur => ur.Role)
+                    .WithMany(r => r.UserRoles)
+                    .HasForeignKey(ur => ur.RoleId)
                     .IsRequired();
 
+                userRole.HasOne(ur => ur.User)
+                    .WithMany(r => r.UserRoles)
+                    .HasForeignKey(ur => ur.UserId)
+                    .IsRequired();
+            });
+
+            builder.Entity<User>(entity =>
+            { 
                 entity.ToTable("user");
             });
 

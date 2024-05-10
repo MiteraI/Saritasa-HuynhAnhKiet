@@ -1,16 +1,15 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using System;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Text;
-using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
 namespace SecretsSharing.Domain.Entities
 {
-    public class User : IdentityUser
+    public class UserRole : IdentityUserRole<string>
     {
-        [JsonIgnore] public virtual ICollection<UserRole> UserRoles { get; set; }
+        public virtual User User { get; set; }
+        public virtual Role Role { get; set; }
     }
 }
