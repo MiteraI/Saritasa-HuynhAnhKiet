@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using SecretsSharing.Domain.Entities;
 using System.Security.Claims;
@@ -14,7 +15,12 @@ namespace SecretsSharing.Configuration
             services.AddIdentity<User, Role>(options =>
             {
                 options.Password.RequiredLength = 8;
+                options.Password.RequireDigit = false;
+                options.Password.RequireLowercase = false;
+                options.Password.RequireUppercase = false;
+                options.Password.RequireNonAlphanumeric = false;
                 options.User.RequireUniqueEmail = true;
+                options.SignIn.RequireConfirmedEmail = false;
                 options.ClaimsIdentity.UserNameClaimType = ClaimTypes.NameIdentifier;
             })
                 .AddEntityFrameworkStores<ApplicationDatabaseContext>()
@@ -44,7 +50,6 @@ namespace SecretsSharing.Configuration
             app.UseCors(options =>
             {
                 options.AllowAnyOrigin();
-                options.AllowCredentials();
                 options.AllowAnyMethod();
                 options.AllowAnyHeader();
             });
