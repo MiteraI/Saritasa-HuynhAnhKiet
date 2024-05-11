@@ -8,6 +8,7 @@ namespace SecretsSharing.Configuration
         public static IServiceCollection AddServiceConfiguration(this IServiceCollection services, IConfiguration configuration)
         {
             services.AddScoped<IUserService, UserService>();
+            services.AddScoped<IUploadService, UploadService>();
 
             return services;
         }

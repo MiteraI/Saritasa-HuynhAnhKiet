@@ -11,7 +11,6 @@ namespace SecretsSharing.Domain.Entities
     {
         public UploadTypes UploadType { get; set; }
         public string? FileName { get; set; }
-        public string? FileUrl { get; set; }
         public string? MessageText { get; set; }
         public bool IsAutoDelete { get; set; } = false;
         public string UserId { get; set; }

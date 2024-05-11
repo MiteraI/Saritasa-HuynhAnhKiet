@@ -12,7 +12,7 @@ using SecretsSharing.Domain.Entities;
 namespace SecretsSharing.Domain.Migrations
 {
     [DbContext(typeof(ApplicationDatabaseContext))]
-    [Migration("20240510082212_FirstMigration")]
+    [Migration("20240511163209_FirstMigration")]
     partial class FirstMigration
     {
         /// <inheritdoc />
@@ -157,9 +157,6 @@ namespace SecretsSharing.Domain.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<string>("FileName")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("FileUrl")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<bool>("IsAutoDelete")

@@ -163,7 +163,6 @@ namespace SecretsSharing.Domain.Migrations
                     Id = table.Column<string>(type: "nvarchar(450)", nullable: false),
                     UploadType = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     FileName = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    FileUrl = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     MessageText = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     IsAutoDelete = table.Column<bool>(type: "bit", nullable: false),
                     UserId = table.Column<string>(type: "nvarchar(450)", nullable: false),

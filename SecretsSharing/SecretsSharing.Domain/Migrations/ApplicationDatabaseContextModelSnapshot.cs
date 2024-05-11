@@ -156,9 +156,6 @@ namespace SecretsSharing.Domain.Migrations
                     b.Property<string>("FileName")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("FileUrl")
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<bool>("IsAutoDelete")
                         .HasColumnType("bit");
 

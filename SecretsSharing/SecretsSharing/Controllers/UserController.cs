@@ -30,7 +30,7 @@ namespace SecretsSharing.Controllers
             return Ok(registeredUser);
         }
 
-        [HttpPost("login")]
+        [HttpPost("authenticate")]
         public async Task<IActionResult> Login([FromBody] LoginDto loginDto)
         {
             var token = await _userService.Authenticate(loginDto.Email, loginDto.Password);
@@ -40,13 +40,6 @@ namespace SecretsSharing.Controllers
             }
 
             return Ok(token);
-        }
-
-        [HttpGet("jwt1")]
-        [Authorize(Roles = RolesConstants.ADMIN)]
-        public string GetJwt1()
-        {
-            return "jwt1";
         }
     }
 }
