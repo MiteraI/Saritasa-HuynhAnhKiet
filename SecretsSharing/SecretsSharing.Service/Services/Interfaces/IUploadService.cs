@@ -1,4 +1,5 @@
-﻿using System;
+﻿using SecretsSharing.Domain.Entities;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -10,5 +11,7 @@ namespace SecretsSharing.Service.Services.Interfaces
     {
         Task UploadFileAsync(MemoryStream stream, string fileName);
         Task UploadMessageAsync(string message);
+        Task<Stream> DownloadFileAsync(string fileKey);
+        Task<Upload> GetUploadAsync(string secretId);
     }
 }

@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using SecretsSharing.Dto.Upload;
 using SecretsSharing.Service.Services.Interfaces;
+using System.IO;
 
 namespace SecretsSharing.Controllers
 {
@@ -14,6 +15,15 @@ namespace SecretsSharing.Controllers
         public UploadController(IUploadService uploadService)
         {
             _uploadService = uploadService;
+        }
+
+        [HttpGet("{secretId}")]
+        public async Task<IActionResult> GetFilesAsync([FromRoute] string secretId)
+            {
+            var stream = await _uploadService.DownloadFileAsync(secretId);
+            Response.Headers.Add("Content-Disposition", $"attachment; filename={secretId}");
+
+            return File(stream,  "application/octet-stream");
         }
 
         [HttpPost]
@@ -36,7 +46,7 @@ namespace SecretsSharing.Controllers
                 await _uploadService.UploadFileAsync(memoryStream, uploadDto.File.FileName);
             }
 
-            return Ok();
+            return Created();
         }
     }
 }

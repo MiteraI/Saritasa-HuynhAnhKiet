@@ -11,13 +11,8 @@ namespace SecretsSharing.Dto.Upload
 {
     public class UploadDto
     {
-        public string? Id { get; set; }
-        public UploadTypes? UploadType { get; set; }
-        public string? FileName { get; set; }
         public string? MessageText { get; set; }
         public bool? IsAutoDelete { get; set; } = false;
-        public string? UserId { get; set; }
-        public User? User { get; set; } = null;
         public IFormFile? File { get; set; }
     }
 }

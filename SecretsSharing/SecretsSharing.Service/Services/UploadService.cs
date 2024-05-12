@@ -1,6 +1,7 @@
 ﻿using Amazon.S3;
 using Amazon.S3.Model;
 using Amazon.S3.Transfer;
+using SecretsSharing.Domain.Entities;
 using SecretsSharing.Service.Services.Interfaces;
 using System;
 using System.Collections.Generic;
@@ -18,6 +19,24 @@ namespace SecretsSharing.Service.Services
         public UploadService(IAmazonS3 s3Client)
         {
             _s3Client = s3Client;
+        }
+
+        public async Task<Stream> DownloadFileAsync(string fileKey)
+        {
+            var request = new GetObjectRequest
+            {
+                BucketName = bucketName,
+                Key = fileKey,
+            };
+
+            var response = await _s3Client.GetObjectAsync(request);
+
+            return response.ResponseStream;
+        }
+
+        public Task<Upload> GetUploadAsync(string secretId)
+        {
+            throw new NotImplementedException();
         }
 
         public async Task UploadFileAsync(MemoryStream stream, string fileName)
