@@ -17,19 +17,23 @@ namespace SecretsSharing.Controllers
             _uploadService = uploadService;
         }
 
-        [HttpGet("{secretId}")]
-        public async Task<IActionResult> GetFilesAsync([FromRoute] string secretId)
-            {
+        [HttpGet("view/{secretId}")]
+        public async Task<IActionResult> ViewSecretAsync([FromRoute] string secretId)
+        {
+            var upload = await _uploadService.GetUploadAsync(secretId);
+
             var stream = await _uploadService.DownloadFileAsync(secretId);
             Response.Headers.Add("Content-Disposition", $"attachment; filename={secretId}");
 
-            return File(stream,  "application/octet-stream");
+            return File(stream, "application/octet-stream");
         }
 
         [HttpPost]
         [Authorize]
-        public async Task<IActionResult> UploadFileAsync([FromForm] UploadDto uploadDto)
+        public async Task<IActionResult> UploadSecretAsync([FromForm] UploadDto uploadDto)
         {
+            //Get subject as Id
+            var subject = User.Claims.FirstOrDefault(c => c.Type == "sub")?.Value;
             if (uploadDto.File == null)
             {
                 return BadRequest("File is null");
