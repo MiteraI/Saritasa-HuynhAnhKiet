@@ -9,8 +9,8 @@ namespace SecretsSharing.Service.Services.Interfaces
 {
     public interface IUploadService
     {
-        Task UploadFileAsync(MemoryStream stream, string fileName);
-        Task UploadMessageAsync(string message);
+        Task<Upload> UploadFileAsync(MemoryStream stream, Upload upload);
+        Task<Upload> UploadMessageAsync(Upload upload);
         Task<Stream> DownloadFileAsync(string fileKey);
         Task<Upload> GetUploadAsync(string secretId);
     }

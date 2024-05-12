@@ -1,8 +1,11 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using SecretsSharing.Domain.Entities;
+using SecretsSharing.Domain.Entities.Enums;
 using SecretsSharing.Dto.Upload;
 using SecretsSharing.Service.Services.Interfaces;
 using System.IO;
+using System.Security.Claims;
 
 namespace SecretsSharing.Controllers
 {
@@ -17,13 +20,13 @@ namespace SecretsSharing.Controllers
             _uploadService = uploadService;
         }
 
-        [HttpGet("view/{secretId}")]
-        public async Task<IActionResult> ViewSecretAsync([FromRoute] string secretId)
+        [HttpGet("{id}")]
+        public async Task<IActionResult> ViewSecretAsync([FromRoute] string id)
         {
-            var upload = await _uploadService.GetUploadAsync(secretId);
+            var upload = await _uploadService.GetUploadAsync(id);
 
-            var stream = await _uploadService.DownloadFileAsync(secretId);
-            Response.Headers.Add("Content-Disposition", $"attachment; filename={secretId}");
+            var stream = await _uploadService.DownloadFileAsync(id);
+            Response.Headers.Add("Content-Disposition", $"attachment; filename={id}");
 
             return File(stream, "application/octet-stream");
         }
@@ -32,25 +35,41 @@ namespace SecretsSharing.Controllers
         [Authorize]
         public async Task<IActionResult> UploadSecretAsync([FromForm] UploadDto uploadDto)
         {
-            //Get subject as Id
-            var subject = User.Claims.FirstOrDefault(c => c.Type == "sub")?.Value;
-            if (uploadDto.File == null)
+            string userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            string userEmail = User.FindFirst(ClaimTypes.Email)?.Value;
+            Upload upload = new Upload
             {
-                return BadRequest("File is null");
-            }
+                UserId = userId,
+                IsAutoDelete = uploadDto.IsAutoDelete ?? false,
+                CreatedBy = userEmail,
+                CreatedDate = DateTime.Now,
+            };
 
-            if (uploadDto.File.Length == 0)
+            try
             {
-                return BadRequest("File is empty");
-            }
+                if (uploadDto.File != null && uploadDto.File?.Length != 0)
+                {
+                    using (var memoryStream = new MemoryStream())
+                    {
+                        upload.FileName = uploadDto.File.FileName;
+                        await uploadDto.File.CopyToAsync(memoryStream);
+                        upload = await _uploadService.UploadFileAsync(memoryStream, upload);
+                    }
 
-            using (var memoryStream = new MemoryStream())
+                    return Created(upload.Id, upload);
+                }
+                else
+                {
+                    upload.MessageText = uploadDto.MessageText;
+                    upload.UploadType = UploadTypes.MESSAGE;
+                    upload = await _uploadService.UploadMessageAsync(upload);
+
+                    return Created(upload.Id, upload);
+                }
+            } catch (Exception ex)
             {
-                await uploadDto.File.CopyToAsync(memoryStream);
-                await _uploadService.UploadFileAsync(memoryStream, uploadDto.File.FileName);
+                return BadRequest(ex.Message);
             }
-
-            return Created();
         }
     }
 }

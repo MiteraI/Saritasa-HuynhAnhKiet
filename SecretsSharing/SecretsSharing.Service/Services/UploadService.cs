@@ -42,22 +42,29 @@ namespace SecretsSharing.Service.Services
             return _uploadRepository.GetOneAsync(secretId);
         }
 
-        public async Task UploadFileAsync(MemoryStream stream, string fileName)
+        public async Task<Upload> UploadFileAsync(MemoryStream stream, Upload upload)
         {
             var fileTransferUtility = new TransferUtility(_s3Client);
             var uploadRequest = new TransferUtilityUploadRequest
             {
                 BucketName = bucketName,
-                Key = fileName,
+                Key = upload.FileName,
                 InputStream = stream
             };
 
             await fileTransferUtility.UploadAsync(uploadRequest);
+            Upload createdUpload = _uploadRepository.Add(upload);
+            await _uploadRepository.SaveChangesAsync();
+
+            return createdUpload;
         }
 
-        public Task UploadMessageAsync(string message)
+        public async Task<Upload> UploadMessageAsync(Upload upload)
         {
-            throw new NotImplementedException();
+            Upload createdUpload = _uploadRepository.Add(upload);
+            await _uploadRepository.SaveChangesAsync();
+
+            return createdUpload;
         }
     }
 }
