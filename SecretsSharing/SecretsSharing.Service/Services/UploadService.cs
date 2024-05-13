@@ -32,7 +32,7 @@ namespace SecretsSharing.Service.Services
             {
                 throw new ResourceNotFoundException("The upload doesn't exist");
             }
-            if (upload.UserId.Equals(userId))
+            if (!upload.UserId.Equals(userId))
             {
                 throw new UnauthorizedAccessException("The upload doesn't belong to you");
             }
@@ -93,7 +93,7 @@ namespace SecretsSharing.Service.Services
             {
                 throw new ResourceNotFoundException("The upload doesn't exist");
             }
-            if (upload.UserId.Equals(userId))
+            if (!upload.UserId.Equals(userId))
             {
                 throw new UnauthorizedAccessException("The upload doesn't belong to you");
             }

@@ -73,13 +73,5 @@ namespace SecretsSharing.Service.Services
 
             return await _userManager.FindByEmailAsync(user.Email);
         }
-
-        private async Task<User> GetUserWithUserRolesByEmail(string email)
-        {
-            return await _userManager.Users
-                .Include(it => it.UserRoles)
-                .ThenInclude(it => it.Role)
-                .SingleOrDefaultAsync(it => it.Email == email);
-        }
     }
 }

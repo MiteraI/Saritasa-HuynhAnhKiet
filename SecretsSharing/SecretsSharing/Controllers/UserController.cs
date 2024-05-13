@@ -1,6 +1,4 @@
-﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
-using SecretsSharing.Domain.Constants;
+﻿using Microsoft.AspNetCore.Mvc;
 using SecretsSharing.Domain.Entities;
 using SecretsSharing.Dto.Auth;
 using SecretsSharing.Service.Services.Interfaces;
@@ -11,10 +9,12 @@ namespace SecretsSharing.Controllers
     [ApiController]
     public class UserController : ControllerBase
     {
-       private readonly IUserService _userService;
+        private readonly ILogger<UserController> _log;
+        private readonly IUserService _userService;
 
-        public UserController(IUserService userService)
+        public UserController(ILogger<UserController> log ,IUserService userService)
         {
+            _log = log;
             _userService = userService;
         }
 
@@ -27,6 +27,8 @@ namespace SecretsSharing.Controllers
                 Email = registerDto.Email
             };
             var registeredUser = await _userService.Register(user, registerDto.Password);
+
+            _log.LogInformation($"User {registeredUser.Email} registered");
             return Ok(registeredUser);
         }
 

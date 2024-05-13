@@ -14,10 +14,12 @@ namespace SecretsSharing.Controllers
     [ApiController]
     public class UploadController : ControllerBase
     {
+        private readonly ILogger<UploadController> _log;
         private readonly IUploadService _uploadService;
 
-        public UploadController(IUploadService uploadService)
+        public UploadController(ILogger<UploadController> log, IUploadService uploadService)
         {
+            _log = log;
             _uploadService = uploadService;
         }
 
@@ -110,6 +112,8 @@ namespace SecretsSharing.Controllers
         public async Task<IActionResult> UpdateAutoDelete([FromRoute] string id, UploadIsAutoDeleteDto isAutoDelete)
         {
             string userId = User.FindFirst(ClaimTypes.NameIdentifier)!.Value;
+            string userEmail = User.FindFirst(ClaimTypes.Email)!.Value;
+
             try
             {
                 var updatedUpload = await _uploadService.UpdateAutoDeleteAsync(id, userId, isAutoDelete.IsAutoDelete);
@@ -118,10 +122,12 @@ namespace SecretsSharing.Controllers
             }
             catch (ResourceNotFoundException ex)
             {
-                return NotFound(ex.Message);
+                _log.LogInformation($"{ex.Message} to {userEmail}");
+                return NotFound();
             }
             catch (UnauthorizedAccessException ex)
             {
+                _log.LogWarning($"{ex.Message} to {userEmail}");
                 return Unauthorized(ex.Message);
             }
             catch (Exception ex)
@@ -135,6 +141,8 @@ namespace SecretsSharing.Controllers
         public async Task<IActionResult> DeleteSecretAsync([FromRoute] string id)
         {
             string userId = User.FindFirst(ClaimTypes.NameIdentifier)!.Value;
+            string userEmail = User.FindFirst(ClaimTypes.Email)!.Value;
+
             try
             {
                 await _uploadService.DeleteUploadAsync(id, userId);
@@ -142,10 +150,12 @@ namespace SecretsSharing.Controllers
             }
             catch (ResourceNotFoundException ex)
             {
+                _log.LogInformation($"{ex.Message} to {userEmail}");
                 return NotFound(ex.Message);
             }
             catch (UnauthorizedAccessException ex)
             {
+                _log.LogWarning($"{ex.Message} to {userEmail}");
                 return Unauthorized(ex.Message);
             }
             catch (Exception ex)
