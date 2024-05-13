@@ -24,27 +24,63 @@ namespace SecretsSharing.Service.Services
             _uploadRepository = uploadRepository;
         }
 
-        public async Task<Stream> DownloadFileAsync(string fileKey)
+        public async Task DeleteUploadAsync(string secretId)
+        {
+            await _uploadRepository.DeleteSecretByIdAsync(secretId);
+        }
+
+        public async Task<Stream> DownloadFileAsync(Upload upload)
         {
             var request = new GetObjectRequest
             {
                 BucketName = bucketName,
-                Key = fileKey,
+                Key = upload.FileName,
             };
-
             var response = await _s3Client.GetObjectAsync(request);
+
+            // Delete the file on S3 as well if the upload is set to auto delete
+            if (upload.IsAutoDelete)
+            {
+                var deleteRequest = new DeleteObjectRequest
+                {
+                    BucketName = bucketName,
+                    Key = upload.FileName
+                };
+                await _s3Client.DeleteObjectAsync(deleteRequest);
+            }
 
             return response.ResponseStream;
         }
 
-        public Task<Upload> GetUploadAsync(string secretId)
+        public async Task<Upload?> GetUploadAsync(string secretId)
         {
-            return _uploadRepository.GetOneAsync(secretId);
+            var upload = await _uploadRepository.GetOneAsync(secretId);
+            if (upload == null)
+            {
+                return null;
+            }
+
+            if (upload.IsAutoDelete)
+            {
+                await _uploadRepository.DeleteSecretAsync(upload);
+            }
+
+            return upload;
         }
 
-        public Task<Upload> UpdateAutoDeleteAsync(string secretId, bool isAutoDelete)
+        public async Task<Upload?> UpdateAutoDeleteAsync(string secretId, string userId, bool isAutoDelete)
         {
-            throw new NotImplementedException();
+            Upload? upload = await _uploadRepository.QueryHelper().Filter(u => u.UserId.Equals(userId) && u.Id.Equals(secretId)).GetOneAsync();
+            if (upload == null)
+            {
+                return null;
+            }
+
+            upload.IsAutoDelete = isAutoDelete;
+            upload.LastModifiedDate = DateTime.Now;
+            await _uploadRepository.SaveChangesAsync();
+
+            return upload;
         }
 
         public async Task<Upload> UploadFileAsync(MemoryStream stream, Upload upload)
@@ -56,8 +92,8 @@ namespace SecretsSharing.Service.Services
                 Key = upload.FileName,
                 InputStream = stream
             };
-
             await fileTransferUtility.UploadAsync(uploadRequest);
+
             Upload createdUpload = _uploadRepository.Add(upload);
             await _uploadRepository.SaveChangesAsync();
 

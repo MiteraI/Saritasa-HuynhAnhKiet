@@ -33,12 +33,17 @@ namespace SecretsSharing.Controllers
             {
                 return Ok(upload.MessageText);
             }
-            else
+            else if (upload.UploadType == UploadTypes.FILE)
             {
-                var stream = await _uploadService.DownloadFileAsync(id);
-                Response.Headers.Add("Content-Disposition", $"attachment; filename={id}");
+                var stream = await _uploadService.DownloadFileAsync(upload);
+                Response.Headers.Append("Content-Disposition", $"attachment; filename={id}");
+                Response.Headers.Append("Content-Type", "application/octet-stream");
 
                 return File(stream, "application/octet-stream");
+            } else
+            {
+                // In case database is manually updated and upload type is invalid
+                return BadRequest("Invalid upload type");
             }
         }
 
@@ -57,16 +62,18 @@ namespace SecretsSharing.Controllers
             };
 
             try
-            {
+            { 
                 if (uploadDto.File != null && uploadDto.File?.Length != 0)
                 {
                     using (var memoryStream = new MemoryStream())
                     {
                         upload.FileName = uploadDto.File.FileName;
+                        upload.UploadType = UploadTypes.FILE;
                         await uploadDto.File.CopyToAsync(memoryStream);
                         upload = await _uploadService.UploadFileAsync(memoryStream, upload);
                     }
 
+                    // Add resource URL to the response header
                     return CreatedAtAction(nameof(ViewSecretAsync), new { id = upload.Id }, upload);
                 }
                 else
@@ -75,20 +82,34 @@ namespace SecretsSharing.Controllers
                     upload.UploadType = UploadTypes.MESSAGE;
                     upload = await _uploadService.UploadMessageAsync(upload);
 
+                    // Add resource URL to the response header
                     return CreatedAtAction(nameof(ViewSecretAsync), new { id = upload.Id }, upload);
                 }
             }
             catch (Exception ex)
             {
-                return BadRequest(ex.Message);
+                return StatusCode(500, ex.Message);
             }
         }
 
         [HttpPut("{id}")]
         [Authorize]
-        public Task<IActionResult> UpdateAutoDelete([FromRoute] string id)
+        public async Task<IActionResult> UpdateAutoDelete([FromRoute] string id, UploadIsAutoDeleteDto isAutoDelete)
         {
-            throw new NotImplementedException();
+            string userId = User.FindFirst(ClaimTypes.NameIdentifier)!.Value;
+            try
+            {
+                var updatedUpload = await _uploadService.UpdateAutoDeleteAsync(id, userId, isAutoDelete.IsAutoDelete);
+                if (updatedUpload == null)
+                {
+                    return NotFound("The upload doesn't exist or not belong to you");
+                }
+
+                return Ok(updatedUpload);
+            } catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message);
+            }
         }
     }
 }

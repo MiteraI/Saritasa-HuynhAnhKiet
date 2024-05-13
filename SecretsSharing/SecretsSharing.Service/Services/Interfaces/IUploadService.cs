@@ -11,8 +11,9 @@ namespace SecretsSharing.Service.Services.Interfaces
     {
         Task<Upload> UploadFileAsync(MemoryStream stream, Upload upload);
         Task<Upload> UploadMessageAsync(Upload upload);
-        Task<Stream> DownloadFileAsync(string fileKey);
-        Task<Upload> GetUploadAsync(string secretId);
-        Task<Upload> UpdateAutoDeleteAsync(string secretId, bool isAutoDelete);
+        Task<Stream> DownloadFileAsync(Upload upload);
+        Task<Upload?> GetUploadAsync(string secretId);
+        Task<Upload?> UpdateAutoDeleteAsync(string secretId, string userId, bool isAutoDelete);
+        Task DeleteUploadAsync(string secretId);
     }
 }

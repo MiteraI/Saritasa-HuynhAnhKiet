@@ -9,5 +9,7 @@ namespace SecretsSharing.Repository.Repositories.Interfaces
 {
     public interface IUploadRepository : IGenericRepository<Upload, string>
     {
+        Task DeleteSecretByIdAsync(string secretId);
+        Task DeleteSecretAsync(Upload upload);
     }
 }
