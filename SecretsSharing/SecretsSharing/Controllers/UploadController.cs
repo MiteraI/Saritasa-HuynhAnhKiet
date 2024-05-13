@@ -24,11 +24,22 @@ namespace SecretsSharing.Controllers
         public async Task<IActionResult> ViewSecretAsync([FromRoute] string id)
         {
             var upload = await _uploadService.GetUploadAsync(id);
+            if (upload == null)
+            {
+                return NotFound();
+            }
 
-            var stream = await _uploadService.DownloadFileAsync(id);
-            Response.Headers.Add("Content-Disposition", $"attachment; filename={id}");
+            if (upload.UploadType == UploadTypes.MESSAGE)
+            {
+                return Ok(upload.MessageText);
+            }
+            else
+            {
+                var stream = await _uploadService.DownloadFileAsync(id);
+                Response.Headers.Add("Content-Disposition", $"attachment; filename={id}");
 
-            return File(stream, "application/octet-stream");
+                return File(stream, "application/octet-stream");
+            }
         }
 
         [HttpPost]
@@ -56,7 +67,7 @@ namespace SecretsSharing.Controllers
                         upload = await _uploadService.UploadFileAsync(memoryStream, upload);
                     }
 
-                    return Created(upload.Id, upload);
+                    return CreatedAtAction(nameof(ViewSecretAsync), new { id = upload.Id }, upload);
                 }
                 else
                 {
@@ -64,12 +75,20 @@ namespace SecretsSharing.Controllers
                     upload.UploadType = UploadTypes.MESSAGE;
                     upload = await _uploadService.UploadMessageAsync(upload);
 
-                    return Created(upload.Id, upload);
+                    return CreatedAtAction(nameof(ViewSecretAsync), new { id = upload.Id }, upload);
                 }
-            } catch (Exception ex)
+            }
+            catch (Exception ex)
             {
                 return BadRequest(ex.Message);
             }
+        }
+
+        [HttpPut("{id}")]
+        [Authorize]
+        public Task<IActionResult> UpdateAutoDelete([FromRoute] string id)
+        {
+            throw new NotImplementedException();
         }
     }
 }

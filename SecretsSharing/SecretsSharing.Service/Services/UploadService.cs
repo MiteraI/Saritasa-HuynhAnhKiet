@@ -42,6 +42,11 @@ namespace SecretsSharing.Service.Services
             return _uploadRepository.GetOneAsync(secretId);
         }
 
+        public Task<Upload> UpdateAutoDeleteAsync(string secretId, bool isAutoDelete)
+        {
+            throw new NotImplementedException();
+        }
+
         public async Task<Upload> UploadFileAsync(MemoryStream stream, Upload upload)
         {
             var fileTransferUtility = new TransferUtility(_s3Client);
