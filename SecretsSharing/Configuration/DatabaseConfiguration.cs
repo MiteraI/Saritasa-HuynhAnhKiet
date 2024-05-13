@@ -14,6 +14,12 @@ namespace SecretsSharing.Configuration
 
             services.AddScoped<DbContext>(provider => provider.GetService<ApplicationDatabaseContext>());
 
+            using (var scope = services.BuildServiceProvider().CreateScope())
+            {
+                var context = scope.ServiceProvider.GetRequiredService<ApplicationDatabaseContext>();
+                context.Database.Migrate();
+            }
+
             return services;
         }
     }
