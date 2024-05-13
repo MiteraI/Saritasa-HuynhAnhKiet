@@ -13,6 +13,7 @@ namespace SecretsSharing.Repository.Repositories.Interfaces
     {
         Task<TEntity> GetOneAsync(TKey id);
         Task<IEnumerable<TEntity>> GetAllAsync();
+        Task<IEnumerable<TEntity>> GetPagingAsync(int position, int size);
         Task DeleteByIdAsync(TKey id);
         Task DeleteAsync(TEntity entity);
         TEntity Add(TEntity entity);

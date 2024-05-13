@@ -3,6 +3,7 @@ using Amazon.S3.Model;
 using Amazon.S3.Transfer;
 using SecretsSharing.Domain.Entities;
 using SecretsSharing.Repository.Repositories.Interfaces;
+using SecretsSharing.Service.Exceptions;
 using SecretsSharing.Service.Services.Interfaces;
 using System;
 using System.Collections.Generic;
@@ -24,8 +25,18 @@ namespace SecretsSharing.Service.Services
             _uploadRepository = uploadRepository;
         }
 
-        public async Task DeleteUploadAsync(string secretId)
+        public async Task DeleteUploadAsync(string secretId, string userId)
         {
+            Upload upload = await _uploadRepository.GetOneAsync(secretId);
+            if (upload == null)
+            {
+                throw new ResourceNotFoundException("The upload doesn't exist");
+            }
+            if (upload.UserId.Equals(userId))
+            {
+                throw new UnauthorizedAccessException("The upload doesn't belong to you");
+            }
+
             await _uploadRepository.DeleteSecretByIdAsync(secretId);
         }
 
@@ -68,12 +79,23 @@ namespace SecretsSharing.Service.Services
             return upload;
         }
 
-        public async Task<Upload?> UpdateAutoDeleteAsync(string secretId, string userId, bool isAutoDelete)
+        public Task<IEnumerable<Upload>> GetUploadsAsync(string userId, int position, int size)
         {
-            Upload? upload = await _uploadRepository.QueryHelper().Filter(u => u.UserId.Equals(userId) && u.Id.Equals(secretId)).GetOneAsync();
+            return _uploadRepository.QueryHelper()
+                .Filter(x => x.UserId == userId)
+                .GetPaginAsync(position, size);
+        }
+
+        public async Task<Upload> UpdateAutoDeleteAsync(string secretId, string userId, bool isAutoDelete)
+        {
+            Upload upload = await _uploadRepository.GetOneAsync(secretId);
             if (upload == null)
             {
-                return null;
+                throw new ResourceNotFoundException("The upload doesn't exist");
+            }
+            if (upload.UserId.Equals(userId))
+            {
+                throw new UnauthorizedAccessException("The upload doesn't belong to you");
             }
 
             upload.IsAutoDelete = isAutoDelete;

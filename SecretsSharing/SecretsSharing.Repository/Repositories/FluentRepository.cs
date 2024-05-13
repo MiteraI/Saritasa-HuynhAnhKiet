@@ -50,6 +50,12 @@ namespace SecretsSharing.Repository.Repositories
             return await query.SingleOrDefaultAsync();
         }
 
+        public async Task<IEnumerable<TEntity>> GetPaginAsync(int position, int size)
+        {
+            IQueryable<TEntity> query = BuildQuery();
+            return await query.Skip(position).Take(size).ToListAsync();
+        }
+
         public IFluentRepository<TEntity> Include(Expression<Func<TEntity, object>> expression)
         {
             _includeProperties.Add(expression);

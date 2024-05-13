@@ -69,5 +69,10 @@ namespace SecretsSharing.Repository.Repositories
         {
             _context.Dispose();
         }
+
+        public async Task<IEnumerable<TEntity>> GetPagingAsync(int position, int size)
+        {
+            return await _dbSet.Skip(position).Take(size).ToListAsync();
+        }
     }
 }

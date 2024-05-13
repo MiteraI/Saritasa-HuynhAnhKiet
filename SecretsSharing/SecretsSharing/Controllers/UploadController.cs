@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using SecretsSharing.Domain.Entities;
 using SecretsSharing.Domain.Entities.Enums;
 using SecretsSharing.Dto.Upload;
+using SecretsSharing.Service.Exceptions;
 using SecretsSharing.Service.Services.Interfaces;
 using System.IO;
 using System.Security.Claims;
@@ -20,6 +21,17 @@ namespace SecretsSharing.Controllers
             _uploadService = uploadService;
         }
 
+        [HttpGet]
+        [Authorize]
+        public async Task<ActionResult<IEnumerable<Upload>>> GetUploadsAsync([FromQuery] int page, [FromQuery] int size)
+        {
+            string userId = User.FindFirst(ClaimTypes.NameIdentifier)!.Value;
+            var uploads = await _uploadService.GetUploadsAsync(userId, page, size);
+
+            return Ok(uploads);
+        }
+
+
         [HttpGet("{id}")]
         public async Task<IActionResult> ViewSecretAsync([FromRoute] string id)
         {
@@ -36,11 +48,12 @@ namespace SecretsSharing.Controllers
             else if (upload.UploadType == UploadTypes.FILE)
             {
                 var stream = await _uploadService.DownloadFileAsync(upload);
-                Response.Headers.Append("Content-Disposition", $"attachment; filename={id}");
+                Response.Headers.Append("Content-Disposition", $"attachment; filename={upload.FileName}");
                 Response.Headers.Append("Content-Type", "application/octet-stream");
 
                 return File(stream, "application/octet-stream");
-            } else
+            }
+            else
             {
                 // In case database is manually updated and upload type is invalid
                 return BadRequest("Invalid upload type");
@@ -49,7 +62,7 @@ namespace SecretsSharing.Controllers
 
         [HttpPost]
         [Authorize]
-        public async Task<IActionResult> UploadSecretAsync([FromForm] UploadDto uploadDto)
+        public async Task<ActionResult<Upload>> UploadSecretAsync([FromForm] UploadDto uploadDto)
         {
             string userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             string userEmail = User.FindFirst(ClaimTypes.Email)?.Value;
@@ -62,7 +75,7 @@ namespace SecretsSharing.Controllers
             };
 
             try
-            { 
+            {
                 if (uploadDto.File != null && uploadDto.File?.Length != 0)
                 {
                     using (var memoryStream = new MemoryStream())
@@ -100,13 +113,42 @@ namespace SecretsSharing.Controllers
             try
             {
                 var updatedUpload = await _uploadService.UpdateAutoDeleteAsync(id, userId, isAutoDelete.IsAutoDelete);
-                if (updatedUpload == null)
-                {
-                    return NotFound("The upload doesn't exist or not belong to you");
-                }
 
                 return Ok(updatedUpload);
-            } catch (Exception ex)
+            }
+            catch (ResourceNotFoundException ex)
+            {
+                return NotFound(ex.Message);
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return Unauthorized(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message);
+            }
+        }
+
+        [HttpDelete("{id}")]
+        [Authorize]
+        public async Task<IActionResult> DeleteSecretAsync([FromRoute] string id)
+        {
+            string userId = User.FindFirst(ClaimTypes.NameIdentifier)!.Value;
+            try
+            {
+                await _uploadService.DeleteUploadAsync(id, userId);
+                return NoContent();
+            }
+            catch (ResourceNotFoundException ex)
+            {
+                return NotFound(ex.Message);
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return Unauthorized(ex.Message);
+            }
+            catch (Exception ex)
             {
                 return StatusCode(500, ex.Message);
             }
