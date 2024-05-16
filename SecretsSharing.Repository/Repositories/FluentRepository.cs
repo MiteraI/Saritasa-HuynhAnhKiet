@@ -50,7 +50,7 @@ namespace SecretsSharing.Repository.Repositories
             return await query.SingleOrDefaultAsync();
         }
 
-        public async Task<IEnumerable<TEntity>> GetPaginAsync(int position, int size)
+        public async Task<IEnumerable<TEntity>> GetPagingAsync(int position, int size)
         {
             IQueryable<TEntity> query = BuildQuery();
             return await query.Skip(position).Take(size).ToListAsync();

@@ -13,7 +13,7 @@ namespace SecretsSharing.Service.Services.Interfaces
         Task<Upload> UploadMessageAsync(Upload upload);
         Task<Stream> DownloadFileAsync(Upload upload);
         Task<Upload> GetUploadAsync(string secretId);
-        Task<IEnumerable<Upload>> GetUploadsAsync(string userId, int position, int size);
+        Task<IEnumerable<Upload>> GetUploadsAsync(string userId, int page, int size);
         Task<Upload> UpdateAutoDeleteAsync(string secretId, string userId, bool isAutoDelete);
         Task DeleteUploadAsync(string secretId, string userId);
     }

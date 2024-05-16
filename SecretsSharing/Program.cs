@@ -2,6 +2,7 @@ using Microsoft.OpenApi.Models;
 using SecretsSharing.Configuration;
 
 var builder = WebApplication.CreateBuilder(args);
+builder.Logging.AddSerilog();
 
 // Add services to the container.
 builder.Services.AddDatabaseConfiguration(builder.Configuration);

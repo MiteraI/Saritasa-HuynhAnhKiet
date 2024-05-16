@@ -79,11 +79,12 @@ namespace SecretsSharing.Service.Services
             return upload;
         }
 
-        public Task<IEnumerable<Upload>> GetUploadsAsync(string userId, int position, int size)
+        public Task<IEnumerable<Upload>> GetUploadsAsync(string userId, int page, int size)
         {
+            if (page < 1) page = 1;
             return _uploadRepository.QueryHelper()
                 .Filter(x => x.UserId == userId)
-                .GetPaginAsync(position, size);
+                .GetPagingAsync((page - 1) * size, size);
         }
 
         public async Task<Upload> UpdateAutoDeleteAsync(string secretId, string userId, bool isAutoDelete)
