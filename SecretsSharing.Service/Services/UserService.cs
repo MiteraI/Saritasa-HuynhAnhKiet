@@ -5,6 +5,7 @@ using Microsoft.IdentityModel.Tokens;
 using SecretsSharing.Domain.Constants;
 using SecretsSharing.Domain.Entities;
 using SecretsSharing.Dto.Auth;
+using SecretsSharing.Service.Exceptions;
 using SecretsSharing.Service.Services.Interfaces;
 using System;
 using System.Collections.Generic;
@@ -32,7 +33,11 @@ namespace SecretsSharing.Service.Services
         public async Task<AuthenticationToken> Authenticate(string email, string password)
         {
             var user = await _userManager.FindByEmailAsync(email);
-            if (user != null && await _userManager.CheckPasswordAsync(user, password))
+            if (user == null)
+            {
+                throw new EmailNotFoundException($"{email} was not found");
+            }
+            if (await _userManager.CheckPasswordAsync(user, password))
             {
                 var userRoles = await _userManager.GetRolesAsync(user);
                 var authClaims = new List<Claim>
@@ -62,12 +67,19 @@ namespace SecretsSharing.Service.Services
                     Token = new JwtSecurityTokenHandler().WriteToken(token)
                 };
             }
-
-            return null;
+            else
+            {
+                throw new InvalidPasswordException("Password did not match");
+            }
         }
 
         public async Task<User> Register(User user, string password)
         {
+            if (await _userManager.FindByEmailAsync(user.Email) != null)
+            {
+                throw new EmailAlreadyUsedException(user.Email);
+            }
+
             await _userManager.CreateAsync(user, password);
             await _userManager.AddToRoleAsync(user, RolesConstants.USER);
 

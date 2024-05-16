@@ -103,6 +103,7 @@ namespace SecretsSharing.Controllers
             }
             catch (Exception ex)
             {
+                _log.LogError(ex, $"Error while uploading secret for {userEmail}");
                 return StatusCode(500, ex.Message);
             }
         }
@@ -132,6 +133,7 @@ namespace SecretsSharing.Controllers
             }
             catch (Exception ex)
             {
+                _log.LogError(ex, $"Error while updating auto delete for {userEmail}");
                 return StatusCode(500, ex.Message);
             }
         }
@@ -160,6 +162,7 @@ namespace SecretsSharing.Controllers
             }
             catch (Exception ex)
             {
+                _log.LogError(ex, $"Error while deleting secret for {userEmail}");
                 return StatusCode(500, ex.Message);
             }
         }
