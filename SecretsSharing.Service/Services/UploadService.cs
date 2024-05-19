@@ -47,33 +47,47 @@ namespace SecretsSharing.Service.Services
                 BucketName = bucketName,
                 Key = upload.FileName,
             };
-            var response = await _s3Client.GetObjectAsync(request);
 
-            // Delete the file on S3 as well if the upload is set to auto delete
-            if (upload.IsAutoDelete)
+            // Try-catch if download from S3 fails
+            try
             {
-                var deleteRequest = new DeleteObjectRequest
-                {
-                    BucketName = bucketName,
-                    Key = upload.FileName
-                };
-                await _s3Client.DeleteObjectAsync(deleteRequest);
-            }
+                var response = await _s3Client.GetObjectAsync(request);
 
-            return response.ResponseStream;
+                // Delete the file on S3 as well if the upload is set to auto delete
+                if (upload.IsAutoDelete)
+                {
+                    var deleteRequest = new DeleteObjectRequest
+                    {
+                        BucketName = bucketName,
+                        Key = upload.FileName
+                    };
+                    await _s3Client.DeleteObjectAsync(deleteRequest);
+                    await _uploadRepository.DeleteSecretAsync(upload);
+                }
+
+                return response.ResponseStream;
+            }
+            catch (AmazonS3Exception e)
+            {
+                throw new Exception("Failed to download file", e);
+            }
         }
 
-        public async Task<Upload?> GetUploadAsync(string secretId)
+        public async Task<string> GetMessageAsync(Upload upload)
+        {
+            if (upload.IsAutoDelete)
+            {
+                await _uploadRepository.DeleteSecretAsync(upload);
+            }
+            return upload.MessageText!;
+        }
+
+        public async Task<Upload> GetUploadAsync(string secretId)
         {
             var upload = await _uploadRepository.GetOneAsync(secretId);
             if (upload == null)
             {
                 return null;
-            }
-
-            if (upload.IsAutoDelete)
-            {
-                await _uploadRepository.DeleteSecretAsync(upload);
             }
 
             return upload;
@@ -115,7 +129,16 @@ namespace SecretsSharing.Service.Services
                 Key = upload.FileName,
                 InputStream = stream
             };
-            await fileTransferUtility.UploadAsync(uploadRequest);
+
+            // Try-catch if upload to S3 fails
+            try
+            {
+                await fileTransferUtility.UploadAsync(uploadRequest);
+            }
+            catch (AmazonS3Exception e)
+            {
+                throw new Exception("Failed to upload file", e);
+            }
 
             Upload createdUpload = _uploadRepository.Add(upload);
             await _uploadRepository.SaveChangesAsync();

@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using Amazon.S3;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SecretsSharing.Domain.Entities;
 using SecretsSharing.Domain.Entities.Enums;
@@ -45,15 +46,29 @@ namespace SecretsSharing.Controllers
 
             if (upload.UploadType == UploadTypes.MESSAGE)
             {
-                return Ok(upload.MessageText);
+                try
+                {
+                    var message = await _uploadService.GetMessageAsync(upload);
+                    return Ok(message);
+                } catch (Exception)
+                {
+                    return StatusCode(500, "Error while retrieving message");
+                }
             }
             else if (upload.UploadType == UploadTypes.FILE)
             {
-                var stream = await _uploadService.DownloadFileAsync(upload);
-                Response.Headers.Append("Content-Disposition", $"attachment; filename={upload.FileName}");
-                Response.Headers.Append("Content-Type", "application/octet-stream");
+                try
+                {
+                    var stream = await _uploadService.DownloadFileAsync(upload);
+                    Response.Headers.Append("Content-Disposition", $"attachment; filename={upload.FileName}");
+                    Response.Headers.Append("Content-Type", "application/octet-stream");
 
-                return File(stream, "application/octet-stream");
+                    return File(stream, "application/octet-stream");
+                } catch (Exception e)
+                {
+                    return StatusCode(500, e.Message);
+                }
+               
             }
             else
             {
