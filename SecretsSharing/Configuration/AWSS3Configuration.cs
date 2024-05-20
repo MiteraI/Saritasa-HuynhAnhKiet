@@ -13,7 +13,7 @@ namespace SecretsSharing.Configuration
             var awsEnvAccessKey = configuration.GetValue<string>("AWS_ACCESS_KEY");
             var awsEnvSecretKey = configuration.GetValue<string>("AWS_SECRET_KEY");
             // Get AWS settings from environment variables
-            if (string.IsNullOrEmpty(awsEnvAccessKey) && string.IsNullOrEmpty(awsEnvSecretKey))
+            if (!string.IsNullOrEmpty(awsEnvAccessKey) && !string.IsNullOrEmpty(awsEnvSecretKey))
             {
                 AWSOptions awsOptions = new AWSOptions
                 {

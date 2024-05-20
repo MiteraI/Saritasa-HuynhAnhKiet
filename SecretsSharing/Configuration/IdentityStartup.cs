@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using SecretsSharing.Domain.Constants;
 using SecretsSharing.Domain.Entities;
+using Serilog;
 
 namespace SecretsSharing.Configuration
 {
@@ -66,6 +67,7 @@ namespace SecretsSharing.Configuration
                     }
                     catch (Exception e)
                     {
+                        Log.Error(e, "Failed to create role {role}", role.Name);
                     }
                 }
                 else
@@ -88,6 +90,7 @@ namespace SecretsSharing.Configuration
                     }
                     catch (Exception e)
                     {
+                        Log.Error(e, "Failed to create user {user}", user.Email);
                     }
                 }
                 else
@@ -108,6 +111,7 @@ namespace SecretsSharing.Configuration
                 }
                 catch (Exception e)
                 {
+                    Log.Error(e, "Failed to assign roles to user {userId}", id);
                 }
             }
         }
