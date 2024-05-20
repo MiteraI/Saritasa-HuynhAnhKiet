@@ -91,17 +91,13 @@ namespace SecretsSharing.Service.Services
         public async Task<Upload> GetUploadAsync(string secretId)
         {
             var upload = await _uploadRepository.GetOneAsync(secretId);
-            if (upload == null)
-            {
-                return null;
-            }
-
             return upload;
         }
 
         public Task<IEnumerable<Upload>> GetUploadsAsync(string userId, int page, int size)
         {
             if (page < 1) page = 1;
+            if (size < 1) size = 1;
             return _uploadRepository.QueryHelper()
                 .Filter(x => x.UserId == userId)
                 .GetPagingAsync((page - 1) * size, size);
