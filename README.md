@@ -22,6 +22,9 @@ Access http://localhost:{your-port} for your app, include **/swagger** if you en
 ### Code
 Open the app on your IDE of choice, change the settings in appsettings.json then build the project and **dotnet run**
 
+### Login to use API
+The app has on seeded user with email: admin@gmail.com and password: admin123. So you can login using this account or register a new one.
+
 ## Approach for the requirements 
 - The resource URL should not be simple like upload/1, upload/2 -> Used GUID for upload Id and return the resource Url on the response header in Swagger UI
 - The user can upload either a message or a file on the same API -> Check if file is present then change upload type to FILE and MESSAGE accordingly

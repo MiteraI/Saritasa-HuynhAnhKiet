@@ -11,7 +11,7 @@ using System.Security.Claims;
 
 namespace SecretsSharing.Controllers
 {
-    [Route("api/upload")]
+    [Route("api/uploads")]
     [ApiController]
     public class UploadController : ControllerBase
     {
