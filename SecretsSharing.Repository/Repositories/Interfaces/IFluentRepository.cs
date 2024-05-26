@@ -16,7 +16,6 @@ namespace SecretsSharing.Repository.Repositories.Interfaces
         Task<IEnumerable<TEntity>> GetAllAsync();
         Task<IEnumerable<TEntity>> GetPagingAsync(int position, int size);
         IFluentRepository<TEntity> Include(Expression<Func<TEntity, object>> expression);
-        IFluentRepository<TEntity> Include(Func<IQueryable<TEntity>, IIncludableQueryable<TEntity, object>> include);
         IFluentRepository<TEntity> AsNoTracking();
     }
 }

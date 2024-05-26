@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace SecretsSharing.Domain.Entities
 {
-    public class BaseEntity<TKey>
+    public abstract class BaseEntity<TKey>
     {
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]

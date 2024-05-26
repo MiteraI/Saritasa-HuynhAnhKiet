@@ -13,7 +13,6 @@ namespace SecretsSharing.Repository.Repositories
     public class FluentRepository<TEntity> : IFluentRepository<TEntity> where TEntity : class
     {
         private readonly DbSet<TEntity> _dbSet;
-        private List<Func<IQueryable<TEntity>, IIncludableQueryable<TEntity, object>>> _include;
         private List<Expression<Func<TEntity, object>>> _includeProperties;
         private Expression<Func<TEntity, bool>> _filter;
         private Func<IQueryable<TEntity>, IOrderedQueryable<TEntity>> _orderBy;
@@ -22,7 +21,6 @@ namespace SecretsSharing.Repository.Repositories
         public FluentRepository(DbSet<TEntity> dbset)
         {
             _dbSet = dbset;
-            _include = new List<Func<IQueryable<TEntity>, IIncludableQueryable<TEntity, object>>>();
             _includeProperties = new List<Expression<Func<TEntity, object>>>();
         }
 
@@ -62,12 +60,6 @@ namespace SecretsSharing.Repository.Repositories
             return this;
         }
 
-        public IFluentRepository<TEntity> Include(Func<IQueryable<TEntity>, IIncludableQueryable<TEntity, object>> include)
-        {
-            _include.Add(include);
-            return this;
-        }
-
         public IFluentRepository<TEntity> OrderBy(Func<IQueryable<TEntity>, IOrderedQueryable<TEntity>> orderBy)
         {
             _orderBy = orderBy;
@@ -86,11 +78,6 @@ namespace SecretsSharing.Repository.Repositories
             if (_includeProperties != null)
             {
                 _includeProperties.ForEach(i => { query = query.Include(i); });
-            }
-
-            if (_include != null)
-            {
-                _include.ForEach(i => { query = i(query); });
             }
 
             if (_filter != null)
