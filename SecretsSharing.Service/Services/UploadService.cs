@@ -98,7 +98,7 @@ namespace SecretsSharing.Service.Services
         {
             if (page < 1) page = 1;
             if (size < 1) size = 1;
-            return _uploadRepository.QueryHelper()
+                return _uploadRepository.QueryHelper()
                 .Filter(x => x.UserId == userId)
                 .GetPagingAsync((page - 1) * size, size);
         }
